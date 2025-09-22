@@ -1,46 +1,440 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Semester Result Lookup</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-<script src="{{ url_for('static', filename='script.js') }}" defer></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Semester Result Lookup</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4361ee;
+            --secondary: #3a0ca3;
+            --success: #4cc9f0;
+            --warning: #f72585;
+            --light: #f8f9fa;
+            --dark: #212529;
+            --gray: #6c757d;
+            --border-radius: 12px;
+            --box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s ease;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: white;
+            border-radius: var(--border-radius);
+            box-shadow: var(--box-shadow);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            padding: 30px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: "";
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 70%);
+            transform: rotate(30deg);
+        }
+
+        .header h2 {
+            font-size: 2.2rem;
+            margin-bottom: 10px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            position: relative;
+            z-index: 1;
+        }
+
+        .form-container {
+            padding: 30px;
+        }
+
+        #resultForm {
+            display: grid;
+            grid-template-columns: 1fr 1fr auto;
+            gap: 15px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 768px) {
+            #resultForm {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        label {
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--dark);
+            font-size: 0.9rem;
+        }
+
+        input, select {
+            padding: 14px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: var(--border-radius);
+            font-size: 1rem;
+            transition: var(--transition);
+            background-color: #fafafa;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: var(--primary);
+            background-color: white;
+            box-shadow: 0 0 0 3px rgba(67, 97, 238, 0.1);
+        }
+
+        button {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            border: none;
+            border-radius: var(--border-radius);
+            padding: 14px 24px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            align-self: flex-end;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(67, 97, 238, 0.3);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .error {
+            background-color: #ffe6e6;
+            color: #d32f2f;
+            padding: 15px;
+            border-radius: var(--border-radius);
+            margin-bottom: 20px;
+            border-left: 4px solid #f72585;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .student-info {
+            background: linear-gradient(to right, #f8f9fa, #e9ecef);
+            padding: 25px;
+            border-radius: var(--border-radius);
+            margin-bottom: 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+
+        .student-info h3 {
+            color: var(--dark);
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .stat-box {
+            background: white;
+            padding: 15px 20px;
+            border-radius: var(--border-radius);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            text-align: center;
+            min-width: 150px;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+
+        .credits .stat-value {
+            color: var(--primary);
+        }
+
+        .backlogs .stat-value {
+            color: var(--warning);
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: var(--gray);
+            font-weight: 500;
+        }
+
+        .result-container {
+            background: white;
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .result-header {
+            background: var(--primary);
+            color: white;
+            padding: 15px 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .result-content {
+            padding: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background-color: #f1f3f9;
+            padding: 12px 15px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--dark);
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        td {
+            padding: 12px 15px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        tr:hover {
+            background-color: #f8f9fa;
+        }
+
+        .grade-A { color: #2e7d32; font-weight: 600; }
+        .grade-B { color: #689f38; font-weight: 600; }
+        .grade-C { color: #f57c00; font-weight: 600; }
+        .grade-F { color: #d32f2f; font-weight: 600; }
+
+        .footer {
+            text-align: center;
+            padding: 20px;
+            color: var(--gray);
+            font-size: 0.9rem;
+            border-top: 1px solid #e0e0e0;
+            margin-top: 30px;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 30px;
+        }
+
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: var(--primary);
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: var(--gray);
+        }
+
+        .empty-state i {
+            font-size: 3rem;
+            margin-bottom: 15px;
+            opacity: 0.5;
+        }
+    </style>
 </head>
 <body>
-<div class="container">
-    <h2>📊 Student Result</h2>
-    <form method="POST" id="resultForm">
-        <input type="text" name="reg_no" placeholder="Enter Registration No"
-               value="{{ reg_no or '' }}" required>
-        <select name="semester" required>
-            <option value="" disabled {% if not semester %}selected{% endif %}>Select Semester</option>
-            <option value="1" {% if semester=='1' %}selected{% endif %}>Semester 1</option>
-            <option value="4" {% if semester=='4' %}selected{% endif %}>Semester 4</option>
-            <option value="6" {% if semester=='6' %}selected{% endif %}>Semester 6</option>
-            <option value="all" {% if semester=='all' %}selected{% endif %}>All Semesters</option>
-        </select>
-        <button type="submit">Show Result</button>
-    </form>
+    <div class="container">
+        <div class="header">
+            <h2><i class="fas fa-graduation-cap"></i> Student Result Portal</h2>
+            <p>Check your semester results and academic progress</p>
+        </div>
 
-    {% if error %}
-        <div class="error">{{ error }}</div>
-    {% endif %}
+        <div class="form-container">
+            <form method="POST" id="resultForm">
+                <div class="form-group">
+                    <label for="reg_no"><i class="fas fa-id-card"></i> Registration Number</label>
+                    <input type="text" id="reg_no" name="reg_no" placeholder="Enter your registration number" 
+                           value="{{ reg_no or '' }}" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="semester"><i class="fas fa-calendar-alt"></i> Select Semester</label>
+                    <select id="semester" name="semester" required>
+                        <option value="" disabled {% if not semester %}selected{% endif %}>Choose semester</option>
+                        <option value="1" {% if semester=='1' %}selected{% endif %}>Semester 1</option>
+                        <option value="4" {% if semester=='4' %}selected{% endif %}>Semester 4</option>
+                        <option value="6" {% if semester=='6' %}selected{% endif %}>Semester 6</option>
+                        <option value="all" {% if semester=='all' %}selected{% endif %}>All Semesters</option>
+                    </select>
+                </div>
+                
+                <button type="submit">
+                    <i class="fas fa-search"></i> Show Result
+                </button>
+            </form>
 
-    {% if name %}
-        <h3>👤 {{ name }}</h3>
+            {% if error %}
+                <div class="error">
+                    <i class="fas fa-exclamation-circle"></i> {{ error }}
+                </div>
+            {% endif %}
 
-        {% if total_credits is not none %}
-            <div class="info">⭐ Total Credits (Excluding Backlogs): {{ '%.1f'|format(total_credits) }}</div>
-        {% endif %}
+            <div class="loading" id="loadingIndicator">
+                <div class="spinner"></div>
+                <p>Fetching your results...</p>
+            </div>
 
-        {% if backlog_count is not none %}
-            <div class="info">⚠️ Backlogs: {{ backlog_count }}</div>
-        {% endif %}
+            {% if name %}
+                <div class="student-info">
+                    <h3><i class="fas fa-user-graduate"></i> {{ name }}</h3>
+                    <div class="stats">
+                        {% if total_credits is not none %}
+                            <div class="stat-box credits">
+                                <div class="stat-value">{{ '%.1f'|format(total_credits) }}</div>
+                                <div class="stat-label">Total Credits</div>
+                            </div>
+                        {% endif %}
+                        
+                        {% if backlog_count is not none %}
+                            <div class="stat-box backlogs">
+                                <div class="stat-value">{{ backlog_count }}</div>
+                                <div class="stat-label">Backlogs</div>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
 
-        {% if result_html %}
-            {{ result_html|safe }}
-        {% endif %}
-    {% endif %}
-</div>
+                {% if result_html %}
+                    <div class="result-container">
+                        <div class="result-header">
+                            <i class="fas fa-table"></i> Academic Results
+                        </div>
+                        <div class="result-content">
+                            {{ result_html|safe }}
+                        </div>
+                    </div>
+                {% else %}
+                    <div class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <h3>No results to display</h3>
+                        <p>Try selecting a different semester or check your registration number</p>
+                    </div>
+                {% endif %}
+            {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-search"></i>
+                    <h3>Ready to check your results?</h3>
+                    <p>Enter your registration number and select a semester to get started</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="footer">
+            <p><i class="fas fa-lock"></i> Your data is secure and confidential</p>
+            <p>© 2023 University Result System | For academic use only</p>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const form = document.getElementById('resultForm');
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            
+            form.addEventListener('submit', function() {
+                loadingIndicator.style.display = 'block';
+            });
+            
+            // Add subtle animations to stat boxes
+            const statBoxes = document.querySelectorAll('.stat-box');
+            statBoxes.forEach(box => {
+                box.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateY(-5px)';
+                    this.style.transition = 'transform 0.3s ease';
+                });
+                
+                box.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateY(0)';
+                });
+            });
+            
+            // Add focus effects to form inputs
+            const inputs = document.querySelectorAll('input, select');
+            inputs.forEach(input => {
+                input.addEventListener('focus', function() {
+                    this.parentNode.style.transform = 'translateY(-2px)';
+                });
+                
+                input.addEventListener('blur', function() {
+                    this.parentNode.style.transform = 'translateY(0)';
+                });
+            });
+        });
+    </script>
 </body>
 </html>
