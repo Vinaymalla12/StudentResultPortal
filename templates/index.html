@@ -1,115 +1,46 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Student Result Lookup</title>
-    <style>
-        body {
-            margin: 0;
-            padding: 0;
-            background: linear-gradient(to right, #4facfe, #00f2fe);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
-            flex-direction: column;
-        }
-
-        .container {
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
-            text-align: center;
-            width: 400px;
-            max-width: 90%;
-        }
-
-        h2, h3 {
-            color: #333;
-        }
-
-        input[type="text"] {
-            width: 80%;
-            padding: 10px;
-            margin: 20px 0;
-            font-size: 16px;
-            border-radius: 30px;
-            border: 1px solid #ccc;
-            outline: none;
-            text-align: center;
-        }
-
-        button {
-            padding: 12px 24px;
-            border: none;
-            background-color: #00c9a7;
-            color: white;
-            font-size: 16px;
-            border-radius: 30px;
-            cursor: pointer;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
-            transition: 0.3s ease-in-out;
-        }
-
-        button:hover {
-            background-color: #008f7a;
-            transform: translateY(-2px);
-        }
-
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        table, th, td {
-            border: 1px solid #ccc;
-            padding: 10px;
-        }
-
-        th {
-            background-color: #f2f2f2;
-        }
-
-        .status {
-            font-size: 20px;
-            font-weight: bold;
-            margin: 20px 0;
-        }
-
-        .pass {
-            color: green;
-        }
-
-        .fail {
-            color: red;
-        }
-    </style>
+<meta charset="UTF-8">
+<title>Semester Result Lookup</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<script src="{{ url_for('static', filename='script.js') }}" defer></script>
 </head>
 <body>
+<div class="container">
+    <h2>📊 Student Result</h2>
+    <form method="POST" id="resultForm">
+        <input type="text" name="reg_no" placeholder="Enter Registration No"
+               value="{{ reg_no or '' }}" required>
+        <select name="semester" required>
+            <option value="" disabled {% if not semester %}selected{% endif %}>Select Semester</option>
+            <option value="1" {% if semester=='1' %}selected{% endif %}>Semester 1</option>
+            <option value="4" {% if semester=='4' %}selected{% endif %}>Semester 4</option>
+            <option value="6" {% if semester=='6' %}selected{% endif %}>Semester 6</option>
+            <option value="all" {% if semester=='all' %}selected{% endif %}>All Semesters</option>
+        </select>
+        <button type="submit">Show Result</button>
+    </form>
 
-    <div class="container">
-        <h2>🔍 Student Result Lookup</h2>
+    {% if error %}
+        <div class="error">{{ error }}</div>
+    {% endif %}
 
-        <form method="POST">
-            <input type="text" name="reg_no" placeholder="Enter Registration Number" required>
-            <br>
-            <button type="submit">Check Result</button>
-        </form>
+    {% if name %}
+        <h3>👤 {{ name }}</h3>
 
-        {% if name %}
-            <h3>👤 Name: {{ name }}</h3>
-            <div class="status {% if 'PASS' in status %}pass{% else %}fail{% endif %}">
-                🎓 Status: {{ status }}
-            </div>
+        {% if total_credits is not none %}
+            <div class="info">⭐ Total Credits (Excluding Backlogs): {{ '%.1f'|format(total_credits) }}</div>
         {% endif %}
 
-        {% if result %}
-            <h3>📘 Subject Grades:</h3>
-            {{ result | safe }}
+        {% if backlog_count is not none %}
+            <div class="info">⚠️ Backlogs: {{ backlog_count }}</div>
         {% endif %}
-    </div>
 
+        {% if result_html %}
+            {{ result_html|safe }}
+        {% endif %}
+    {% endif %}
+</div>
 </body>
 </html>
